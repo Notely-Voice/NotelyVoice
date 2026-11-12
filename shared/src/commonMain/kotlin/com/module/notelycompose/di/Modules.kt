@@ -5,6 +5,8 @@ import com.module.notelycompose.audio.presentation.AudioPlayerViewModel
 import com.module.notelycompose.audio.presentation.AudioRecorderViewModel
 import com.module.notelycompose.audio.presentation.mappers.AudioPlayerPresentationToUiMapper
 import com.module.notelycompose.audio.presentation.mappers.AudioRecorderPresentationToUiMapper
+import com.module.notelycompose.dailyexport.DailyExportRepository
+import com.module.notelycompose.dailyexport.DailyExportViewModel
 import com.module.notelycompose.database.NoteDatabase
 import com.module.notelycompose.modelDownloader.ModelDownloaderViewModel
 import com.module.notelycompose.modelDownloader.MoveModelViewModel
@@ -77,6 +79,7 @@ val mapperModule = module {
 }
 val repositoryModule = module {
     singleOf(::PreferencesRepository)
+    singleOf(::DailyExportRepository)
 }
 
 val viewModelModule = module {
@@ -93,6 +96,7 @@ val viewModelModule = module {
     viewModelOf(::AudioImportViewModel)
     viewModelOf(::ExportSelectionViewModel)
     viewModelOf(::PhotoImportViewModel)
+    viewModelOf(::DailyExportViewModel)
 }
 
 val useCaseModule = module {

@@ -17,6 +17,8 @@ import com.module.notelycompose.platform.dataStore
 import com.module.notelycompose.platform.pdf.IOSPdfGenerator
 import com.squareup.sqldelight.db.SqlDriver
 import com.squareup.sqldelight.drivers.native.NativeSqliteDriver
+import com.module.notelycompose.dailyexport.DailyExportScheduler
+import com.module.notelycompose.dailyexport.NoOpDailyExportScheduler
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import platform.Foundation.NSBundle
@@ -49,4 +51,7 @@ actual val platformModule = module {
     // domain
     single<AudioRecorderInteractor> { AudioRecorderInteractorImpl(get(), get()) }
     single<ExportSelectionInteractor> { ExportSelectionInteractorImpl() }
+
+    // daily export is not available on iOS
+    single<DailyExportScheduler> { NoOpDailyExportScheduler() }
 }
