@@ -6,6 +6,10 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.foundation.pager.rememberPagerState
@@ -599,6 +603,7 @@ private fun NoteContent(
             FullscreenPhotoViewer(
                 photos = editorState.photos,
                 initialIndex = index.coerceIn(0, editorState.photos.lastIndex),
+                onDeleteRequest = { photoToDelete = it },
                 onClose = { fullscreenPhotoIndex = null }
             )
         }
@@ -609,6 +614,7 @@ private fun NoteContent(
 private fun FullscreenPhotoViewer(
     photos: List<PhotoUiModel>,
     initialIndex: Int,
+    onDeleteRequest: (PhotoUiModel) -> Unit,
     onClose: () -> Unit
 ) {
     val pagerState = rememberPagerState(initialPage = initialIndex) { photos.size }
@@ -653,6 +659,19 @@ private fun FullscreenPhotoViewer(
                         .padding(horizontal = 12.dp, vertical = 6.dp)
                 )
                 Spacer(modifier = Modifier.weight(1f))
+                IconButton(
+                    onClick = {
+                        photos.getOrNull(pagerState.currentPage)?.let(onDeleteRequest)
+                    },
+                    modifier = Modifier.clip(CircleShape).background(scrim)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete photo",
+                        tint = Color.White
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
                 IconButton(
                     onClick = onClose,
                     modifier = Modifier.clip(CircleShape).background(scrim)
@@ -705,39 +724,36 @@ private fun FullscreenPhotoViewer(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun PhotosRow(
     photos: List<PhotoUiModel>,
     onPhotoClick: (PhotoUiModel) -> Unit,
     onDeleteRequest: (PhotoUiModel) -> Unit
 ) {
+    val haptics = LocalHapticFeedback.current
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(photos, key = { it.id }) { photo ->
-            Box {
-                AsyncImage(
-                    model = photo.filePath,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(120.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { onPhotoClick(photo) },
-                    contentScale = ContentScale.Crop
-                )
-                IconButton(
-                    onClick = { onDeleteRequest(photo) },
-                    modifier = Modifier.align(Alignment.TopEnd)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete photo",
-                        tint = Color.Red
-                    )
-                }
-            }
+            AsyncImage(
+                model = photo.filePath,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .combinedClickable(
+                        onClick = { onPhotoClick(photo) },
+                        // Long press is a shortcut to delete, the viewer has a delete button too
+                        onLongClick = {
+                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onDeleteRequest(photo)
+                        }
+                    ),
+                contentScale = ContentScale.Crop
+            )
         }
     }
 }
