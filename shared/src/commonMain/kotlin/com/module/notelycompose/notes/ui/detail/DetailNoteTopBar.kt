@@ -94,6 +94,7 @@ fun DetailNoteTopBar(
         DetailIOSNoteTopBar(
             onNavigateBack = onNavigateBack,
             onShare = onShare,
+            onCopy = onCopy,
             onExportAudio = onExportAudio,
             onImportClick = {
                 if (!isRecordingExist) {
@@ -199,6 +200,7 @@ fun DetailAndroidNoteTopBar(
 @Composable
 fun DetailIOSNoteTopBar(
     onNavigateBack: () -> Unit,
+    onCopy: () -> Unit = {},
     onExportAudio: () -> Unit,
     onImportClick: () -> Unit,
     onImportVideoClick: () -> Unit,
