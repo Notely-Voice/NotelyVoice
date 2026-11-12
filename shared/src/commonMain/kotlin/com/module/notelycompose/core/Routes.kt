@@ -50,6 +50,9 @@ sealed interface Routes {
     data object ExportBatchNotes : Routes
 
     @Serializable
+    data object DailyExport : Routes
+
+    @Serializable
     data object LanguageModelSelection : Routes
 
     @Serializable

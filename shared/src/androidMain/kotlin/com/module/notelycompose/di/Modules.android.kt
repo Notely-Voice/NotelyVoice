@@ -9,6 +9,11 @@ import com.module.notelycompose.audio.domain.AudioRecorderInteractor
 import com.module.notelycompose.audio.domain.AudioRecorderInteractorImpl
 import com.module.notelycompose.audio.domain.SaveAudioNoteInteractor
 import com.module.notelycompose.audio.domain.SaveAudioNoteInteractorImpl
+import com.module.notelycompose.dailyexport.AndroidDailyExportFileWriter
+import com.module.notelycompose.dailyexport.AndroidDailyExportScheduler
+import com.module.notelycompose.dailyexport.DailyExportFileWriter
+import com.module.notelycompose.dailyexport.DailyExportRunner
+import com.module.notelycompose.dailyexport.DailyExportScheduler
 import com.module.notelycompose.database.NoteDatabase
 import com.module.notelycompose.export.domain.ExportSelectionInteractor
 import com.module.notelycompose.export.domain.ExportSelectionInteractorImpl
@@ -77,4 +82,9 @@ actual val platformModule = module {
             folderPickerHandler = get()
         )
     }
+
+    // daily export (Android only)
+    single<DailyExportFileWriter> { AndroidDailyExportFileWriter(get()) }
+    single<DailyExportScheduler> { AndroidDailyExportScheduler(get(), get()) }
+    single { DailyExportRunner(get(), get(), get()) }
 }

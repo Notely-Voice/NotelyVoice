@@ -44,6 +44,8 @@ import com.module.notelycompose.modelDownloader.OPTIMIZED_MODEL_SELECTION
 import com.module.notelycompose.notes.extension.TEXT_SIZE_BODY
 import com.module.notelycompose.notes.extension.intBodyFontSizes
 import com.module.notelycompose.notes.ui.theme.LocalCustomColors
+import com.module.notelycompose.dailyexport.DailyExportRepository
+import com.module.notelycompose.dailyexport.DailyExportScheduler
 import com.module.notelycompose.onboarding.data.PreferencesRepository
 import com.module.notelycompose.platform.Theme
 import kotlinx.coroutines.launch
@@ -93,8 +95,13 @@ fun SettingsScreen(
     navigateToSettingsText: () -> Unit,
     navigateToModelSelection: () -> Unit,
     navigateToMoveModel: () -> Unit,
-    preferencesRepository: PreferencesRepository = koinInject()
+    navigateToDailyExport: () -> Unit = {},
+    preferencesRepository: PreferencesRepository = koinInject(),
+    dailyExportScheduler: DailyExportScheduler = koinInject(),
+    dailyExportRepository: DailyExportRepository = koinInject()
 ) {
+    val dailyExportSettings by dailyExportRepository.getSettings()
+        .collectAsState(com.module.notelycompose.dailyexport.DailyExportSettings())
     val language by preferencesRepository.getDefaultTranscriptionLanguage()
         .collectAsState(languageCodeMap.entries.first().key)
     val uiMode by preferencesRepository.getTheme().collectAsState(Theme.SYSTEM.name)
@@ -156,6 +163,17 @@ fun SettingsScreen(
 
             item {
                 ExportSettingSection()
+            }
+
+            if (dailyExportScheduler.isSupported) {
+                item {
+                    TextSizeSettingItem(
+                        title = "Daily export",
+                        subtitle = "Save your notes to a folder automatically every day",
+                        currentValue = if (dailyExportSettings.enabled) "On" else "Off",
+                        onClick = navigateToDailyExport
+                    )
+                }
             }
 
             item {

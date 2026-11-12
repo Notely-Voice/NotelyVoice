@@ -54,6 +54,7 @@ kotlin {
             // Refactor
             implementation(libs.koin.android)
             implementation(libs.core.splashscreen)
+            implementation(libs.androidx.work.runtime)
             implementation(libs.androidx.compose.documentfile)
         }
 

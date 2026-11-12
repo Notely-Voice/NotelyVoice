@@ -27,6 +27,7 @@ import com.module.notelycompose.notes.ui.detail.NoteDetailScreen
 import com.module.notelycompose.notes.ui.list.InfoScreen
 import com.module.notelycompose.notes.ui.list.NoteListScreen
 import com.module.notelycompose.notes.ui.settings.LanguageSelectionScreen
+import com.module.notelycompose.dailyexport.DailyExportScreen
 import com.module.notelycompose.notes.ui.settings.ModelExplanationScreen
 import com.module.notelycompose.notes.ui.settings.ModelSelectionScreen
 import com.module.notelycompose.notes.ui.settings.MoveModelScreen
@@ -139,7 +140,15 @@ fun NoteAppRoot(platformUiState: PlatformUiState) {
                     },
                     navigateToMoveModel = {
                         navController.navigateSingleTop(Routes.MoveModel)
+                    },
+                    navigateToDailyExport = {
+                        navController.navigateSingleTop(Routes.DailyExport)
                     }
+                )
+            }
+            composableWithVerticalSlide<Routes.DailyExport> {
+                DailyExportScreen(
+                    navigateBack = { navController.popBackStack() }
                 )
             }
             composableWithVerticalSlide<Routes.Language> {
