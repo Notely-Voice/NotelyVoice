@@ -1,5 +1,6 @@
 package com.module.notelycompose.platform
 
+import com.module.notelycompose.platform.pdf.IOSPdfGenerator
 import platform.Foundation.NSURL
 import platform.UIKit.UIActivityViewController
 import platform.UIKit.UIApplication

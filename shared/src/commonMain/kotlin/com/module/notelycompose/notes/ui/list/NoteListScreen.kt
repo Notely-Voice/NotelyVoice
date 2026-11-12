@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.FabPosition
 import androidx.compose.material.FloatingActionButton
+import androidx.compose.material.FloatingActionButtonDefaults.elevation
 import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
@@ -88,7 +89,8 @@ fun NoteListScreen(
                         }
 
                     },
-                    backgroundColor = LocalCustomColors.current.backgroundViewColor
+                    backgroundColor = LocalCustomColors.current.backgroundViewColor,
+                    elevation = elevation(defaultElevation = 2.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,

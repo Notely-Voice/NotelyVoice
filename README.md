@@ -3,11 +3,25 @@
 [![Kotlin](https://img.shields.io/badge/kotlin-2.1.21-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/compose-1.8.0-blue.svg?logo=jetpackcompose)](https://www.jetbrains.com/lp/compose-multiplatform)
 [![API](https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
-[![](https://hosted.weblate.org/widget/notelyvoice/svg-badge.svg)](https://hosted.weblate.org/projects/notelyvoice/)
 
-A completely free modern, cross-platform note-taking application with powerful Whisper AI Voice to Text capabilities built with Compose Multiplatform.
+A completely free, modern, cross-platform, 100% private AI voice transcription & note-taking application with powerful Whisper AI Voice to Text capabilities built with Compose Multiplatform.
 
 Perfect for students capturing lectures, professionals documenting meetings, doctors recording patient notes, researchers transcribing interviews, and anyone needing accessible hands-free note-taking across all their devices.
+
+
+
+> **Two versions of NotelyVoice**
+> This repository is the **open source** version, distributed freely on F-Droid under GPL-3.0 and actively maintained.
+> A separate, fully rebuilt version with a new codebase, redesigned UI, and a subscription model is available on Google Play.
+> Revenue from the Play Store version funds ongoing development of **both** versions.
+
+| | F-Droid (this repo) | Google Play |
+|---|---|---|
+| Price | Free | Subscription |
+| Source | Open source (GPL-3.0) | Proprietary |
+| Codebase | This repository | Rebuilt from scratch |
+| UI | Original | Fully redesigned |
+| Updates | Active | Active |
 
 ## Download the app
 <div style="display:flex;" >
@@ -21,10 +35,6 @@ Perfect for students capturing lectures, professionals documenting meetings, doc
     <img alt="Available at Appstore" height="64" src="https://dbsqho33cgp4y.cloudfront.net/github/app-store-badge.png" />
 </a>
 </div>
-
-## Translations
-This project uses [Weblate](https://hosted.weblate.org/projects/notelyvoice/) for translation management. Help us translate NotelyVoice into your language!
-<br/>
 
 ## Screenshots
 
@@ -58,6 +68,32 @@ This project uses [Weblate](https://hosted.weblate.org/projects/notelyvoice/) fo
 📱 **Share Audio Functionality** - Share audios recorded on the App to Messages, WhatsApp, Files, Google Drive etc  
 📱 **Share Texts** - Share texts on the App to Messages, WhatsApp, Files, Google Drive etc
 
+## Audio Processing Improvements
+
+### Memory-Efficient Audio Processing
+
+The app now includes memory-optimized audio processing to handle large files without Out of Memory (OOM) errors:
+
+1. **Streaming WAV Decoder**: Processes audio files in chunks instead of loading entire files into memory
+2. **Overlapping Chunk Transcription**: Splits long audio files into manageable chunks with overlap for seamless transcription
+3. **Configurable Chunk Sizes**: Adjustable chunk sizes based on device memory and performance requirements
+
+### Chunking Configuration
+
+The transcription process uses configurable parameters:
+
+- **Default Chunk Size**: 30 seconds per chunk
+- **Overlap Size**: 3 seconds overlap between chunks
+- **Maximum Chunk Size**: 60 seconds (configurable)
+- **Memory Buffer**: 1MB processing chunks
+
+### Benefits
+
+- **No More OOM Errors**: Large audio files (hours long) can be processed without memory issues
+- **Better Performance**: Smaller chunks process faster and use less memory
+- **Seamless Transcription**: Overlapping chunks ensure no text is lost at chunk boundaries
+- **Progressive Processing**: Real-time progress updates as chunks are processed
+
 ## Speech Recognition Technology
 
 - **OpenAI Whisper** - State-of-the-art open-source automatic speech recognition
@@ -77,9 +113,9 @@ This project uses [Weblate](https://hosted.weblate.org/projects/notelyvoice/) fo
 - **[Kotlin](https://kotlinlang.org/)** - Official programming language for Android development
 - **[Compose Multiplatform](https://www.jetbrains.com/lp/compose-multiplatform/)** - UI toolkit for building native applications
 - **[Coroutines](https://kotlinlang.org/docs/coroutines-overview.html)** - For asynchronous programming
-- **[Clean Architecture](https://developer.android.com/topic/architecture)** - Ensures scalability and testability
+- **[Android Architecture](https://developer.android.com/topic/architecture)** - Ensures scalability and testability
 - **[ViewModel](https://developer.android.com/topic/libraries/architecture/viewmodel)** - Stores and manages UI-related data
-- **[Dagger-Hilt](https://dagger.dev/hilt/)** - Dependency injection for Android
+- **[Koin](https://insert-koin.io/docs/quickstart/android/)** - Dependency injection for Android
 - **[Material 3](https://m3.material.io/)** - Design system for modern UI
 - **[Whisper AI](https://openai.com/index/whisper/)** - Human level robustness speech recognition
 - **Native Compose Navigation** - No third-party navigation libraries
@@ -87,7 +123,7 @@ This project uses [Weblate](https://hosted.weblate.org/projects/notelyvoice/) fo
 
 ## Architecture
 
-Notely is built with Clean Architecture principles, separating the app into distinct layers:
+Notely is built with Android Architecture principles, separating the app into distinct layers:
 
 - **UI Layer**: Compose UI components
 - **Presentation Layer**: Platform Independent ViewModels

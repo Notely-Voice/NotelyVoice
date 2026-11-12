@@ -9,6 +9,24 @@ CREATE TABLE notesEntity(
     created_at INTEGER NOT NULL
 );
 
+CREATE TABLE noteRecordingEntity(
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    note_id INTEGER NOT NULL REFERENCES notesEntity(id) ON DELETE CASCADE,
+    file_path TEXT NOT NULL,
+    transcription TEXT NOT NULL DEFAULT '',
+    duration_ms INTEGER NOT NULL DEFAULT 0,
+    position INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL
+);
+
+CREATE TABLE notePhotoEntity(
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    note_id INTEGER NOT NULL REFERENCES notesEntity(id) ON DELETE CASCADE,
+    file_path TEXT NOT NULL,
+    position INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL
+);
+
 getAllNotes:
 SELECT * FROM notesEntity ORDER BY created_at DESC;
 
@@ -53,3 +71,63 @@ getNotesByContent:
 SELECT * FROM notesEntity
 WHERE content LIKE :query || '%'
 ORDER BY created_at DESC;
+
+-- Multiple recordings per note
+
+getRecordingsByNoteId:
+SELECT * FROM noteRecordingEntity
+WHERE note_id = :noteId
+ORDER BY position ASC, created_at ASC;
+
+insertRecording:
+INSERT INTO noteRecordingEntity(note_id, file_path, transcription, duration_ms, position, created_at)
+VALUES(:noteId, :filePath, :transcription, :durationMs, :position, :createdAt);
+
+updateRecordingTranscription:
+UPDATE noteRecordingEntity
+SET transcription = :transcription
+WHERE id = :id;
+
+updateRecordingDuration:
+UPDATE noteRecordingEntity
+SET duration_ms = :durationMs
+WHERE id = :id;
+
+deleteRecordingById:
+DELETE FROM noteRecordingEntity WHERE id = :id;
+
+deleteRecordingsByNoteId:
+DELETE FROM noteRecordingEntity WHERE note_id = :noteId;
+
+getLastRecordingId:
+SELECT id FROM noteRecordingEntity
+ORDER BY id DESC
+LIMIT 1;
+
+getNotesWithAnyRecording:
+SELECT DISTINCT notesEntity.* FROM notesEntity
+LEFT JOIN noteRecordingEntity ON notesEntity.id = noteRecordingEntity.note_id
+WHERE notesEntity.recording_path != '' OR noteRecordingEntity.id IS NOT NULL
+ORDER BY notesEntity.created_at DESC;
+
+-- Multiple photos per note
+
+getPhotosByNoteId:
+SELECT * FROM notePhotoEntity
+WHERE note_id = :noteId
+ORDER BY position ASC, created_at ASC;
+
+insertPhoto:
+INSERT INTO notePhotoEntity(note_id, file_path, position, created_at)
+VALUES(:noteId, :filePath, :position, :createdAt);
+
+deletePhotoById:
+DELETE FROM notePhotoEntity WHERE id = :id;
+
+deletePhotosByNoteId:
+DELETE FROM notePhotoEntity WHERE note_id = :noteId;
+
+getLastPhotoId:
+SELECT id FROM notePhotoEntity
+ORDER BY id DESC
+LIMIT 1;

@@ -12,6 +12,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.module.notelycompose.notes.ui.theme.LocalCustomColors
+import com.module.notelycompose.resources.Res
+import com.module.notelycompose.resources.close
+import com.module.notelycompose.resources.settings_light_theme
+import com.module.notelycompose.resources.settings_dark_theme
+import com.module.notelycompose.resources.settings_system_default
+import com.module.notelycompose.resources.settings_change_language
+import com.module.notelycompose.resources.settings_change_default
+import com.module.notelycompose.resources.settings_transcription_language
+import com.module.notelycompose.resources.settings_themes
+import com.module.notelycompose.resources.settings_title
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SettingsBottomSheet(
@@ -30,7 +41,7 @@ fun SettingsBottomSheet(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Settings",
+                text = stringResource(Res.string.settings_title),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -38,7 +49,7 @@ fun SettingsBottomSheet(
                 IconButton(onClick = onDismiss) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Close"
+                        contentDescription = stringResource(Res.string.close)
                     )
                 }
             }
@@ -56,7 +67,7 @@ fun SettingsBottomSheet(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Themes",
+                text = stringResource(Res.string.settings_themes),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -72,7 +83,7 @@ fun SettingsBottomSheet(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Transcription Language",
+                text = stringResource(Res.string.settings_transcription_language),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -89,7 +100,7 @@ fun SettingsBottomSheet(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "English",
+                text = stringResource(Res.string.settings_change_default),
                 fontSize = 16.sp
             )
         }
@@ -106,7 +117,7 @@ fun SettingsBottomSheet(
                 onClick = {}
             ) {
                 Text(
-                    text = "Change Language",
+                    text = stringResource(Res.string.settings_change_language),
                     fontSize = 16.sp
                 )
             }
@@ -127,7 +138,7 @@ fun ThemeSettingsSection() {
     ) {
 
         ThemeToggleOption(
-            title = "System Default",
+            title = stringResource(Res.string.settings_system_default),
             isSelected = selectedTheme == ThemeOption.SYSTEM,
             onClick = { selectedTheme = ThemeOption.SYSTEM }
         )
@@ -135,7 +146,7 @@ fun ThemeSettingsSection() {
         Divider()
 
         ThemeToggleOption(
-            title = "Light Theme",
+            title = stringResource(Res.string.settings_light_theme),
             isSelected = selectedTheme == ThemeOption.LIGHT,
             onClick = { selectedTheme = ThemeOption.LIGHT }
         )
@@ -143,7 +154,7 @@ fun ThemeSettingsSection() {
         Divider()
 
         ThemeToggleOption(
-            title = "Dark Theme",
+            title = stringResource(Res.string.settings_dark_theme),
             isSelected = selectedTheme == ThemeOption.DARK,
             onClick = { selectedTheme = ThemeOption.DARK }
         )

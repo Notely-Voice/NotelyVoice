@@ -1,0 +1,2 @@
+- F-droid compatible build
+- Fix Transcription bug: Long texts not separated adequately by spaces

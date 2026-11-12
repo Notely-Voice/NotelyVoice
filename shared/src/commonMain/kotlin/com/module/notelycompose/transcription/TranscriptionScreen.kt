@@ -75,7 +75,8 @@ fun TranscriptionScreen(
     DisposableEffect(Unit) {
         viewModel.requestAudioPermission()
         viewModel.initRecognizer()
-        viewModel.startRecognizer(editorState.recording.recordingPath)
+        // Transcribe the recording selected in the editor, or the primary one by default
+        viewModel.startRecognizer(editorViewModel.getRecordingPathForTranscription())
         onDispose {
             viewModel.stopRecognizer()
             viewModel.finishRecognizer()
@@ -208,6 +209,7 @@ fun TranscriptionScreen(
     }
 
     HandlePlatformBackNavigation(enabled = true) {
+        editorViewModel.onSelectRecordingForTranscription(null)
         navigateBack()
     }
 
@@ -276,8 +278,3 @@ fun SmoothLinearProgressBar(progress: Float) {
         strokeCap = StrokeCap.Round
     )
 }
-
-
-
-
-

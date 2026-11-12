@@ -1,0 +1,2 @@
+- Enhanced reading experience with customizable text size options
+- Resolved stability issues for smoother transcription performance

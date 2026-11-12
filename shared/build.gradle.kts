@@ -45,14 +45,12 @@ kotlin {
             implementation(libs.google.accompanist.systemuicontroller)
             implementation(libs.sqldelight.android.driver)
 
-            // Wav Recorder
-            implementation(libs.android.wave.recorder)
+            implementation(libs.google.accompanist.systemuicontroller)
 
             implementation(libs.kotlinx.serialization.json)
             implementation(project(":lib"))
-            implementation(libs.androidx.activity.compose)
-            // Refactor
-            implementation(libs.koin.android)
+
+            // splash
             implementation(libs.core.splashscreen)
             implementation(libs.androidx.compose.documentfile)
         }
@@ -70,21 +68,25 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.androidx.lifecycle.viewmodel)
 
-            @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
             implementation(compose.components.resources)
             implementation(libs.compose.vectorize.core)
             implementation(libs.kotlinx.serialization.json)
+
+            // image loading
+            implementation(libs.coil.compose)
 
             // koin
             implementation(libs.koin.core)
             implementation(libs.koin.test)
             implementation(libs.koin.compose.viewmodel)
 
+
             // navigation
             implementation(libs.navigation.compose)
 
             // logging
             implementation(libs.napier)
+
             // Data store
             implementation(libs.datastore.preferences)
             implementation(libs.datastore)
@@ -107,7 +109,19 @@ kotlin {
 
     targets.all {
         compilations.all {
-            kotlinOptions.freeCompilerArgs += "-Xexpect-actual-classes"
+            compilerOptions.configure {
+                allWarningsAsErrors = false
+                freeCompilerArgs.add("-Xexpected-actual-classes")
+                // For deterministic builds
+                freeCompilerArgs.add("-Xjsr305=strict")
+                freeCompilerArgs.add("-Xno-param-assertions")
+                freeCompilerArgs.add("-Xno-receiver-assertions")
+                freeCompilerArgs.add("-Xno-call-assertions")
+                freeCompilerArgs.add("-Xno-optimize")
+                freeCompilerArgs.add("-Xassertions=jvm")
+                freeCompilerArgs.add("-Xuse-deterministic-jar-order")
+                freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
+            }
         }
     }
 
@@ -147,11 +161,13 @@ kotlin {
 //        }
 //    }
 }
+
 compose.resources {
     publicResClass = true
     packageOfResClass = "com.module.notelycompose.resources"
     generateResClass = always
 }
+
 sqldelight {
     database("NoteDatabase") {
         packageName = "com.module.notelycompose.database"
@@ -177,6 +193,7 @@ android {
         compose = true
         buildConfig = true
     }
+
     composeOptions {
         kotlinCompilerExtensionVersion = "1.4.6"
     }
@@ -185,23 +202,37 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-        }
-    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+    packaging {
+        // Ensure reproducible packaging
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "META-INF/DEPENDENCIES"
+            excludes += "META-INF/LICENSE*"
+            excludes += "META-INF/NOTICE*"
+            excludes += "META-INF/*.version"
+            excludes += "assets/composeResources/com.module.notelycompose.resources/strings.xml"
+        }
 
+        // Force deterministic file ordering
+        jniLibs {
+            useLegacyPackaging = true
+            // 16KB Page Size Support: Use uncompressed native libraries
+            pickFirsts += listOf("**/libc++_shared.so", "**/libwhisper.so")
+        }
+
+        // Ensure reproducible DEX files
+        dex {
+            useLegacyPackaging = false
+        }
+    }
     buildTypes {
         getByName("release") {
-//            isMinifyEnabled = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            isMinifyEnabled = false
+            isDebuggable = false
             // uncomment to run on release for testing
             // signingConfig = signingConfigs.getByName("debug")
         }

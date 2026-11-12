@@ -47,6 +47,8 @@
 	</dict>
 	<key>NSAppleMusicUsageDescription</key>
 	<string>This app requires access to play audio files.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Notely Voice needs microphone access to record and save your spoken voice notes. These audio recordings are stored locally on your device and are not shared with third parties.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -75,6 +77,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-
 </dict>
 </plist>

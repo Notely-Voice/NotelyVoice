@@ -229,6 +229,14 @@ fun DetailIOSNoteTopBar(
             }
         },
         actions = {
+            IconButton(onClick = { onCopy() }) {
+                Icon(
+                    painter = painterResource(Res.drawable.ic_copy),
+                    contentDescription = stringResource(Res.string.copy),
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            
             IconButton(onClick = { onShare() }) {
                 Icon(
                     imageVector = Icons.Filled.Share,

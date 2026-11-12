@@ -1,0 +1,6 @@
+- Import Audio feature
+- Supported formats: .mp3, .wav, .aac, .caf, .flac, .m4a
+- Not supported: .wma and .aiff files are officially not supported on Android
+
+- Export Audio feature
+- Export to local storage on device

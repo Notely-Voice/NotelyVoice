@@ -15,13 +15,10 @@ buildscript {
     }
     dependencies {
         classpath(libs.sqldelight.gradle.plugin)
-        classpath(libs.hilt.android.gradle.plugin)
         classpath(libs.atomicfu.gradle.plugin)
     }
 }
-allprojects {
-    apply(plugin = "kotlinx-atomicfu")
-}
+
 tasks.register("clean", Delete::class) {
     delete(rootProject.buildDir)
 }

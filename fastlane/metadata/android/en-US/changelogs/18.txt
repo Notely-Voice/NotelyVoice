@@ -1,0 +1,3 @@
+- Improved memory management when processing large audio files
+- Export as Text file feature
+- App is now available in Russian, Spanish, Estonian, French, Simplified Chinese, and Hindi

@@ -10,5 +10,7 @@ data class NoteDomainModel(
     val formatting: List<TextFormatDomainModel>,
     val textAlign: TextAlignDomainModel,
     val recordingPath: String,
+    val recordings: List<RecordingDomainModel> = emptyList(),
+    val photos: List<PhotoDomainModel> = emptyList(),
     val createdAt: LocalDateTime
 )

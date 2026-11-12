@@ -7,13 +7,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import audio.utils.deleteFile
 import com.module.notelycompose.notes.domain.DeleteNoteById
+import com.module.notelycompose.notes.domain.DeletePhotoByIdUseCase
+import com.module.notelycompose.notes.domain.DeleteRecordingByIdUseCase
 import com.module.notelycompose.notes.domain.GetLastNote
 import com.module.notelycompose.notes.domain.GetNoteById
+import com.module.notelycompose.notes.domain.GetPhotosByNoteId
+import com.module.notelycompose.notes.domain.GetRecordingsByNoteId
 import com.module.notelycompose.notes.domain.InsertNoteUseCase
+import com.module.notelycompose.notes.domain.InsertPhotoUseCase
+import com.module.notelycompose.notes.domain.InsertRecordingUseCase
 import com.module.notelycompose.notes.domain.UpdateNoteUseCase
+import com.module.notelycompose.notes.domain.UpdateRecordingTranscriptionUseCase
 import com.module.notelycompose.notes.domain.model.NoteDomainModel
 import com.module.notelycompose.notes.presentation.detail.model.EditorPresentationState
+import com.module.notelycompose.notes.presentation.detail.model.PhotoPresentationModel
 import com.module.notelycompose.notes.presentation.detail.model.RecordingPathPresentationModel
+import com.module.notelycompose.notes.presentation.detail.model.RecordingPresentationModel
 import com.module.notelycompose.notes.presentation.detail.model.TextPresentationFormat
 import com.module.notelycompose.notes.presentation.helpers.TextEditorHelper
 import com.module.notelycompose.notes.presentation.helpers.formattedDate
@@ -44,6 +53,13 @@ class TextEditorViewModel(
     private val deleteNoteUseCase: DeleteNoteById,
     private val updateNoteUseCase: UpdateNoteUseCase,
     private val getLastNoteUseCase: GetLastNote,
+    private val getRecordingsByNoteIdUseCase: GetRecordingsByNoteId,
+    private val insertRecordingUseCase: InsertRecordingUseCase,
+    private val deleteRecordingByIdUseCase: DeleteRecordingByIdUseCase,
+    private val updateRecordingTranscriptionUseCase: UpdateRecordingTranscriptionUseCase,
+    private val getPhotosByNoteIdUseCase: GetPhotosByNoteId,
+    private val insertPhotoUseCase: InsertPhotoUseCase,
+    private val deletePhotoByIdUseCase: DeletePhotoByIdUseCase,
     private val editorPresentationToUiStateMapper: EditorPresentationToUiStateMapper,
     private val textFormatPresentationMapper: TextFormatPresentationMapper,
     private val textAlignPresentationMapper: TextAlignPresentationMapper,
@@ -75,6 +91,22 @@ class TextEditorViewModel(
 
     private fun processNote(retrievedNote: NoteDomainModel) {
         viewModelScope.launch {
+            var recordings = getRecordingsByNoteIdUseCase.execute(retrievedNote.id)
+
+            // Fallback for notes that still hold only the legacy single recording path
+            if (recordings.isEmpty() && retrievedNote.recordingPath.isNotEmpty()) {
+                val insertedId = insertRecordingUseCase.execute(
+                    noteId = retrievedNote.id,
+                    filePath = retrievedNote.recordingPath,
+                    position = 0L
+                )
+                if (insertedId != null) {
+                    recordings = getRecordingsByNoteIdUseCase.execute(retrievedNote.id)
+                }
+            }
+
+            val photos = getPhotosByNoteIdUseCase.execute(retrievedNote.id)
+
             loadNote(
                 content = retrievedNote.content,
                 formats = retrievedNote.formatting.map {
@@ -84,6 +116,20 @@ class TextEditorViewModel(
                     retrievedNote.textAlign
                 ),
                 recordingPath = retrievedNote.recordingPath,
+                recordings = recordings.map {
+                    RecordingPresentationModel(
+                        id = it.id,
+                        filePath = it.filePath,
+                        transcription = it.transcription,
+                        durationMs = it.durationMs
+                    )
+                },
+                photos = photos.map {
+                    PhotoPresentationModel(
+                        id = it.id,
+                        filePath = it.filePath
+                    )
+                },
                 starred = retrievedNote.starred,
                 createdAt = getFormattedDate(retrievedNote.createdAt),
                 bodyTextSize = preferencesRepository.getBodyTextSize().first()
@@ -109,16 +155,147 @@ class TextEditorViewModel(
         )
     }
 
+    /**
+     * Adds a new audio recording to the current note. Each recording keeps its own
+     * transcription, so a note can contain several audio files at once.
+     */
     fun onUpdateRecordingPath(recordingPath: String) {
-        _editorPresentationState.update {
-            it.copy(
-                recording = recordingPath(recordingPath)
-            )
+        if (recordingPath.isEmpty()) return
+        viewModelScope.launch {
+            val noteId = ensureNoteExists()
+            if (noteId == ID_NOT_SET) return@launch
+            val position = _editorPresentationState.value.recordings.size.toLong()
+            val recordingId = insertRecordingUseCase.execute(
+                noteId = noteId,
+                filePath = recordingPath,
+                position = position
+            ) ?: return@launch
+            _editorPresentationState.update { state ->
+                val updatedRecordings = state.recordings + RecordingPresentationModel(
+                    id = recordingId,
+                    filePath = recordingPath
+                )
+                state.copy(
+                    recordings = updatedRecordings,
+                    recording = recordingPath(updatedRecordings.first().filePath)
+                )
+            }
         }
-        onUpdateContent(newContent = _editorPresentationState.value.content)
     }
 
+    fun onDeleteRecording(recordingId: Long) {
+        val recording = _editorPresentationState.value.recordings
+            .firstOrNull { it.id == recordingId } ?: return
+        viewModelScope.launch {
+            deleteFile(recording.filePath)
+            deleteRecordingByIdUseCase.execute(recordingId)
+            _editorPresentationState.update { state ->
+                val updatedRecordings = state.recordings.filterNot { it.id == recordingId }
+                state.copy(
+                    recordings = updatedRecordings,
+                    recording = recordingPath(updatedRecordings.firstOrNull()?.filePath ?: ""),
+                    transcriptionRecordingId = state.transcriptionRecordingId
+                        .takeIf { it != recordingId }
+                )
+            }
+        }
+    }
+
+    fun onUpdateRecordingTranscription(recordingId: Long, transcription: String) {
+        viewModelScope.launch {
+            updateRecordingTranscriptionUseCase.execute(recordingId, transcription)
+            _editorPresentationState.update { state ->
+                state.copy(
+                    recordings = state.recordings.map { recording ->
+                        if (recording.id == recordingId) {
+                            recording.copy(transcription = transcription)
+                        } else {
+                            recording
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    /**
+     * Marks which recording the transcription screen should work with.
+     * Pass null to fall back to the legacy primary recording.
+     */
+    fun onSelectRecordingForTranscription(recordingId: Long?) {
+        _editorPresentationState.update { it.copy(transcriptionRecordingId = recordingId) }
+    }
+
+    /**
+     * File path of the recording selected for transcription, or the legacy primary
+     * recording path when nothing specific was selected.
+     */
+    fun getRecordingPathForTranscription(): String {
+        val state = _editorPresentationState.value
+        val selected = state.transcriptionRecordingId?.let { selectedId ->
+            state.recordings.firstOrNull { it.id == selectedId }
+        }
+        return selected?.filePath ?: state.recording.recordingPath
+    }
+
+    /**
+     * Id of the recording selected for transcription, or null when the legacy
+     * primary recording flow is used.
+     */
+    fun getSelectedRecordingIdForTranscription(): Long? {
+        return _editorPresentationState.value.transcriptionRecordingId
+    }
+
+    /**
+     * Adds several photos to the current note at once.
+     */
+    fun onAddPhotos(photoPaths: List<String>) {
+        if (photoPaths.isEmpty()) return
+        viewModelScope.launch {
+            val noteId = ensureNoteExists()
+            if (noteId == ID_NOT_SET) return@launch
+            photoPaths.forEach { path ->
+                val position = _editorPresentationState.value.photos.size.toLong()
+                val photoId = insertPhotoUseCase.execute(
+                    noteId = noteId,
+                    filePath = path,
+                    position = position
+                ) ?: return@forEach
+                _editorPresentationState.update { state ->
+                    state.copy(
+                        photos = state.photos + PhotoPresentationModel(
+                            id = photoId,
+                            filePath = path
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    fun onDeletePhoto(photoId: Long) {
+        val photo = _editorPresentationState.value.photos
+            .firstOrNull { it.id == photoId } ?: return
+        viewModelScope.launch {
+            deleteFile(photo.filePath)
+            deletePhotoByIdUseCase.execute(photoId)
+            _editorPresentationState.update { state ->
+                state.copy(
+                    photos = state.photos.filterNot { it.id == photoId }
+                )
+            }
+        }
+    }
+
+    /**
+     * Legacy entry point: deletes the primary (first) recording of the note.
+     */
     fun onDeleteRecord() {
+        val firstRecording = _editorPresentationState.value.recordings.firstOrNull()
+        if (firstRecording != null) {
+            onDeleteRecording(firstRecording.id)
+            return
+        }
         deleteFile(_editorPresentationState.value.recording.recordingPath)
         _editorPresentationState.update {
             it.copy(
@@ -133,11 +310,33 @@ class TextEditorViewModel(
         isRecordingExist = recordingPath.isNotEmpty()
     )
 
+    private suspend fun ensureNoteExists(): Long {
+        val existingId = _currentNoteId.value
+        if (existingId != null && existingId != ID_NOT_SET) return existingId
+        val content = _editorPresentationState.value.content.text
+        val newId = insertNoteUseCase.execute(
+            title = content,
+            content = content,
+            starred = _editorPresentationState.value.starred,
+            formatting = _editorPresentationState.value.formats.map {
+                textFormatPresentationMapper.mapToDomainModel(it)
+            },
+            textAlign = textAlignPresentationMapper.mapToDomainModel(
+                _editorPresentationState.value.textAlign
+            ),
+            recordingPath = ""
+        ) ?: ID_NOT_SET
+        _currentNoteId.value = newId
+        return newId
+    }
+
     private fun loadNote(
         content: String,
         formats: List<TextPresentationFormat>,
         textAlign: TextAlign,
         recordingPath: String,
+        recordings: List<RecordingPresentationModel>,
+        photos: List<PhotoPresentationModel>,
         starred: Boolean,
         createdAt: String,
         bodyTextSize: Float
@@ -147,7 +346,11 @@ class TextEditorViewModel(
                 content = TextFieldValue(content),
                 formats = formats,
                 textAlign = textAlign,
-                recording = recordingPath(recordingPath),
+                recording = recordingPath(
+                    recordings.firstOrNull()?.filePath ?: recordingPath
+                ),
+                recordings = recordings,
+                photos = photos,
                 starred = starred,
                 createdAt = createdAt,
                 bodyTextSize = bodyTextSize
@@ -203,6 +406,12 @@ class TextEditorViewModel(
 
     fun onDeleteNote() {
         _currentNoteId.value?.let { noteId ->
+            _editorPresentationState.value.recordings.forEach { recording ->
+                deleteFile(recording.filePath)
+            }
+            _editorPresentationState.value.photos.forEach { photo ->
+                deleteFile(photo.filePath)
+            }
             val path = _editorPresentationState.value.recording.recordingPath
             deleteFile(filePath = path)
             deleteNote(id = noteId)

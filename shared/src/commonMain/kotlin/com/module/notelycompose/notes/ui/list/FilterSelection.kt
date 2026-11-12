@@ -41,9 +41,14 @@ fun FilterSelection(
         selectedTabIndex = titles.indexOf(tabSelected),
         contentColor = LocalCustomColors.current.dateContentColorViewColor,
         indicator = { tabPositions: List<TabPosition> ->
+
+            val selectedIndex = titles.indexOf(tabSelected).let { index ->
+                if (index == -1) 0 else index // Default to first tab if key not found
+            }
+
             Box(
                 modifier = Modifier
-                    .tabIndicatorOffset(tabPositions[titles.indexOf(tabSelected)])
+                    .tabIndicatorOffset(tabPositions[selectedIndex])
                     .fillMaxSize()
                     .padding(horizontal = 4.dp)
                     .border(BorderStroke(2.dp, LocalCustomColors.current.dateContentIconColor), RoundedCornerShape(16.dp))

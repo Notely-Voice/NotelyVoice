@@ -1,0 +1,4 @@
+- F-droid compatible build
+- Hindi Transcriptions
+- Handling Hindi language nuances, compound words, and contextual markers to divide text into paragraphs accurately.
+- Fix crashes on Transcribe on Android

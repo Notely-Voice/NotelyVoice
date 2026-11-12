@@ -1,0 +1,3 @@
+- Export as PDF feature
+- Auto Detect is enabled for bilingual or multilingual users
+- App translations are now available in Arabic, Persian/Farsi, Finnish, Galician, Indonesian, Italian, Vietnamese, Turkish, Ukrainian, Tagalog/Filipino, Thai, Swedish, Japanese, Korean, Malay, Dutch, Norwegian, Polish, Portuguese, Catalan.

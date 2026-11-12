@@ -1,0 +1,3 @@
+- Prevent app crashes on texts selection
+- Show hours in audio player time display
+- Fix media player crash issue

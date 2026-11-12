@@ -43,8 +43,19 @@ import com.module.notelycompose.resources.onboarding_ios_tablet_four
 import com.module.notelycompose.resources.onboarding_android_three
 import com.module.notelycompose.resources.onboarding_android_four
 import com.module.notelycompose.resources.onboarding_android_two
+import com.module.notelycompose.resources.onboarding_get_started
+import com.module.notelycompose.resources.onboarding_next
+import com.module.notelycompose.resources.onboarding_skip
+import com.module.notelycompose.resources.onboarding_screen_one_title
+import com.module.notelycompose.resources.onboarding_screen_one_desc
+import com.module.notelycompose.resources.onboarding_screen_two_title
+import com.module.notelycompose.resources.onboarding_screen_two_desc
+import com.module.notelycompose.resources.onboarding_screen_three_title
+import com.module.notelycompose.resources.onboarding_screen_three_desc
+import com.module.notelycompose.resources.onboarding_screen_four_title
+import com.module.notelycompose.resources.onboarding_screen_four_desc
 import org.jetbrains.compose.resources.painterResource
-import org.koin.compose.viewmodel.koinViewModel
+import org.jetbrains.compose.resources.stringResource
 
 data class OnboardingPage(
     val title: String,
@@ -62,8 +73,8 @@ fun OnboardingWalkthrough(
 ) {
     val pages = mutableListOf(
         OnboardingPage(
-            title = "Create Notes\nand Share",
-            description = "Write and share your notes\ninstantly with ease",
+            title = stringResource(Res.string.onboarding_screen_one_title),
+            description = stringResource(Res.string.onboarding_screen_one_desc),
             backgroundColor = Color(0xFFFFFAD0),
             textColor = Color(0xFFCA7F58),
             androidResources = when {
@@ -76,8 +87,8 @@ fun OnboardingWalkthrough(
             }
         ),
         OnboardingPage(
-            title = "Record Voice\nNote and Share",
-            description = "Capture and share voice notes\non the go",
+            title = stringResource(Res.string.onboarding_screen_two_title),
+            description = stringResource(Res.string.onboarding_screen_two_desc),
             backgroundColor = Color(0xFFFFFAD0),
             textColor = Color(0xFFCA7F58),
             androidResources = when {
@@ -90,8 +101,8 @@ fun OnboardingWalkthrough(
             }
         ),
         OnboardingPage(
-            title = "Transcribe\nand Summarise",
-            description = "Convert voice notes to text and\nsummaries without internet",
+            title = stringResource(Res.string.onboarding_screen_three_title),
+            description = stringResource(Res.string.onboarding_screen_three_desc),
             backgroundColor = Color(0xFFFFFAD0),
             textColor = Color(0xFFCA7F58),
             androidResources = when {
@@ -104,8 +115,8 @@ fun OnboardingWalkthrough(
             }
         ),
         OnboardingPage(
-            title = "Supports\nOver 50 languages",
-            description = "Create and transcribe notes in\nyour preferred language",
+            title = stringResource(Res.string.onboarding_screen_four_title),
+            description = stringResource(Res.string.onboarding_screen_four_desc),
             backgroundColor = Color(0xFFFFFAD0),
             textColor = Color(0xFFCA7F58),
             androidResources = when {
@@ -147,7 +158,7 @@ fun OnboardingWalkthrough(
                     )
                 ) {
                     Text(
-                        text = "Skip",
+                        text = stringResource(Res.string.onboarding_skip),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -203,7 +214,7 @@ fun OnboardingWalkthrough(
                     contentPadding = PaddingValues(horizontal = 32.dp, vertical = 12.dp)
                 ) {
                     Text(
-                        text = if (pagerState.currentPage == pages.size - 1) "Get Started" else "Next",
+                        text = if (pagerState.currentPage == pages.size - 1) stringResource(Res.string.onboarding_get_started) else stringResource(Res.string.onboarding_next),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color.White

@@ -14,6 +14,7 @@ import com.module.notelycompose.platform.PlatformAudioPlayer
 import com.module.notelycompose.platform.PlatformUtils
 import com.module.notelycompose.platform.Transcriber
 import com.module.notelycompose.platform.dataStore
+import com.module.notelycompose.platform.pdf.IOSPdfGenerator
 import com.squareup.sqldelight.db.SqlDriver
 import com.squareup.sqldelight.drivers.native.NativeSqliteDriver
 import org.koin.core.qualifier.named
@@ -24,9 +25,10 @@ import platform.Foundation.NSBundle
 actual val platformModule = module {
 
     single<Platform> { IOSPlatform() }
-    single { PlatformUtils() }
+    single { PlatformUtils(get()) }
     single { BrowserLauncher() }
     single { dataStore() }
+    single { IOSPdfGenerator() }
 
     single<SqlDriver> {
         NativeSqliteDriver(NoteDatabase.Schema, "notes.db")

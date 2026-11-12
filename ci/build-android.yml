@@ -1,0 +1,94 @@
+# GitHub Actions workflow для сборки и публикации Android APK.
+# Переместите этот файл в .github/workflows/build-android.yml
+# (API GitHub не позволяет изменять workflow-файлы без scope 'workflow').
+
+name: Build and Publish Android APK
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual trigger
+
+permissions:
+  contents: write # Needed to create GitHub Releases and upload APK assets
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+
+    - name: Install NDK
+      run: sdkmanager "ndk;27.0.12077973"
+
+    - name: Setup Gradle
+      uses: gradle/gradle-build-action@v2
+      with:
+        cache-read-only: false
+
+    - name: Make gradlew executable
+      run: chmod +x ./gradlew
+
+    - name: Generate SQLDelight interfaces
+      run: ./gradlew :shared:generateMainNoteDatabaseInterface --stacktrace
+
+    - name: Build debug APK
+      run: ./gradlew assembleDebug --stacktrace
+
+    - name: Build unsigned release APK
+      run: ./gradlew assembleRelease --stacktrace
+
+    - name: Rename APK artifacts
+      run: |
+        VERSION=$(grep -oP 'versionName = "\K[^"]+' shared/build.gradle.kts || echo "dev")
+        COMMIT=$(git rev-parse --short HEAD)
+        mkdir -p artifacts
+        find . -path '*/build/outputs/apk/debug/*.apk' -exec cp {} "artifacts/NotelyVoice-${VERSION}-${COMMIT}-debug.apk" \;
+        find . -path '*/build/outputs/apk/release/*.apk' ! -name '*unsigned*' -exec cp {} "artifacts/NotelyVoice-${VERSION}-${COMMIT}-release.apk" \;
+        find . -path '*/build/outputs/apk/release/*unsigned*.apk' -exec cp {} "artifacts/NotelyVoice-${VERSION}-${COMMIT}-release-unsigned.apk" \;
+        ls -la artifacts/
+
+    - name: Upload debug APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: debug-apk
+        path: artifacts/*-debug.apk
+        retention-days: 14
+
+    - name: Upload release APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: unsigned-release-apk
+        path: artifacts/*-release*.apk
+        retention-days: 30
+
+    - name: Publish APK to GitHub Releases
+      if: success() && github.event_name != 'pull_request'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: build-${{ github.run_number }}
+        name: Build ${{ github.run_number }} (${{ github.ref_name }})
+        body: |
+          Автоматическая сборка из ветки `${{ github.ref_name }}`
+          Коммит: ${{ github.sha }}
+        files: artifacts/*.apk
+        prerelease: ${{ github.ref_name != 'main' }}
+        fail_on_unmatched_files: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

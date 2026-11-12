@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 add_link_options("LINKER:--build-id=none")
+
+# 16KB Page Size Support, linker flags for 16KB page size alignment on Android 15+ devices
+add_link_options("LINKER:-z,max-page-size=16384")
+
 project(whisper.cpp)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -15,6 +19,9 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 
 # Disable timestamps - ADDED
 add_definitions(-DGGML_NO_TIMESTAMPS=1)
+
+# 16KB Page Size Support: Add NDK r27 flexible page size compilation flag
+add_definitions(-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON)
 
 # Path to external GGML, otherwise uses the copy in whisper.cpp.
 option(GGML_HOME "whisper: Path to external GGML source" OFF)
@@ -81,6 +88,9 @@ function(build_library target_name)
         target_link_options(${target_name} PRIVATE -Wl,--gc-sections)
         target_link_options(${target_name} PRIVATE -Wl,--exclude-libs,ALL)
         target_link_options(${target_name} PRIVATE -flto)
+
+        # 16KB Page Size Support, linker flags for 16KB page size alignment on Android 15+ devices
+        target_link_options(${target_name} PRIVATE -Wl,-z,max-page-size=16384)
     endif ()
 
     if (GGML_HOME)

@@ -31,23 +31,31 @@ class WhisperContext private constructor(private var ptr: Long) {
         callback: WhisperCallback
     ): String = withContext(scope.coroutineContext) {
         require(ptr != 0L)
-        val numThreads = WhisperCpuConfig.preferredThreadCount
-        Log.d(LOG_TAG, "Selecting $numThreads threads")
 
-        WhisperLib.fullTranscribe(ptr, numThreads, data, language, callback)
-        val textCount = WhisperLib.getTextSegmentCount(ptr)
-        return@withContext buildString {
-            for (i in 0 until textCount) {
-                if (printTimestamp) {
-                    val textTimestamp = "[${toTimestamp(WhisperLib.getTextSegmentT0(ptr, i))} --> ${
-                        toTimestamp(WhisperLib.getTextSegmentT1(ptr, i))
-                    }]"
-                    val textSegment = WhisperLib.getTextSegment(ptr, i)
-                    append("$textTimestamp: $textSegment\n")
-                } else {
-                    append(WhisperLib.getTextSegment(ptr, i))
+        try {
+            val numThreads = WhisperCpuConfig.preferredThreadCount
+            Log.d(LOG_TAG, "Selecting $numThreads threads")
+
+            WhisperLib.fullTranscribe(ptr, numThreads, data, language, callback)
+
+            val textCount = WhisperLib.getTextSegmentCount(ptr)
+            return@withContext buildString {
+                for (i in 0 until textCount) {
+                    if (printTimestamp) {
+                        val textTimestamp = "[${toTimestamp(WhisperLib.getTextSegmentT0(ptr, i))} --> ${
+                            toTimestamp(WhisperLib.getTextSegmentT1(ptr, i))
+                        }]"
+                        val textSegment = WhisperLib.getTextSegment(ptr, i)
+                        append("$textTimestamp: $textSegment\n")
+                    } else {
+                        append(WhisperLib.getTextSegment(ptr, i))
+                    }
                 }
             }
+
+        } catch (e: Exception) {
+            Log.e(LOG_TAG, "Error during transcription", e)
+            return@withContext ""
         }
     }
 

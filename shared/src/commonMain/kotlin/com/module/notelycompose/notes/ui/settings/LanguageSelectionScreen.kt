@@ -52,6 +52,12 @@ import com.module.notelycompose.onboarding.data.PreferencesRepository
 import com.module.notelycompose.platform.getPlatform
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
+import com.module.notelycompose.resources.Res
+import com.module.notelycompose.resources.language_selection_no_languages_found
+import com.module.notelycompose.resources.language_selection_supported_languages
+import com.module.notelycompose.resources.language_selection_search
+import com.module.notelycompose.resources.language_selection_select_language
+import org.jetbrains.compose.resources.stringResource
 
 val languageCodeMap = mapOf(
     "en" to "English",
@@ -130,14 +136,14 @@ fun LanguageSelectionScreen(
         ) {
             // Title
             Text(
-                text = "Select Language",
+                text = stringResource(Res.string.language_selection_select_language),
                 color = LocalCustomColors.current.bodyContentColor,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 24.dp),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                textAlign = TextAlign.Center
             )
 
             // Search Bar
@@ -149,7 +155,7 @@ fun LanguageSelectionScreen(
                     .padding(bottom = 24.dp),
                 placeholder = {
                     Text(
-                        text = "Search",
+                        text = stringResource(Res.string.language_selection_search),
                         color = LocalCustomColors.current.languageSearchBorderColor
                     )
                 },
@@ -193,7 +199,7 @@ fun LanguageSelectionScreen(
 
             // Language List
             Text(
-                text = "SUPPORTED LANGUAGES",
+                text = stringResource(Res.string.language_selection_supported_languages),
                 color = LocalCustomColors.current.languageListHeaderColor,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
@@ -213,7 +219,7 @@ fun LanguageSelectionScreen(
             ) {
                 if (filteredLanguages.isEmpty()) {
                     Text(
-                        text = "No languages found",
+                        text = stringResource(Res.string.language_selection_no_languages_found),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp)
