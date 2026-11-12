@@ -224,7 +224,6 @@ fun NoteDetailScreen(
                     audioPlayerViewModel.releasePlayer()
                     audioImportViewModel.importVideo()
                 },
-                isRecordingExist = hasAnyRecording,
                 onExportTextAsTxt = {
                     platformViewModel.onExportTextAsTxt(editorState.content.text)
                 },
@@ -453,6 +452,7 @@ private fun NoteContent(
 ) {
     val coroutineScope = rememberCoroutineScope()
     var recordingToDelete by remember { mutableStateOf<RecordingUiModel?>(null) }
+    var playingRecordingId by remember { mutableStateOf<Long?>(null) }
     var photoToDelete by remember { mutableStateOf<PhotoUiModel?>(null) }
     var fullscreenPhotoIndex by remember { mutableStateOf<Int?>(null) }
     var showDeleteLegacyRecordingDialog by remember { mutableStateOf(false) }
@@ -489,8 +489,8 @@ private fun NoteContent(
                     key(recording.id) {
                         RecordingItem(
                             recording = recording,
-                            audioPlayerUiState = audioPlayerUiState,
-                            audioPlayerViewModel = audioPlayerViewModel,
+                            playingRecordingId = playingRecordingId,
+                            onPlaybackStarted = { playingRecordingId = it },
                             isDeletePending = recordingToDelete?.id == recording.id,
                             onTranscribeRequest = { onTranscribeRecording(recording) },
                             onDeleteRequest = { recordingToDelete = recording }
@@ -746,8 +746,8 @@ private fun PhotosRow(
 @Composable
 private fun RecordingItem(
     recording: RecordingUiModel,
-    audioPlayerUiState: AudioPlayerUiState,
-    audioPlayerViewModel: AudioPlayerViewModel,
+    playingRecordingId: Long?,
+    onPlaybackStarted: (Long) -> Unit,
     isDeletePending: Boolean,
     onTranscribeRequest: () -> Unit,
     onDeleteRequest: () -> Unit
@@ -756,6 +756,20 @@ private fun RecordingItem(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
+        // Every recording has its own player, so durations and positions don't affect each other
+        val playerViewModel: AudioPlayerViewModel = koinViewModel(key = "recording-player-${recording.id}")
+        val audioPlayerUiState = playerViewModel.uiState.collectAsStateWithLifecycle().value
+            .let { playerViewModel.onGetUiState(it) }
+        LaunchedEffect(audioPlayerUiState.isPlaying) {
+            if (audioPlayerUiState.isPlaying) onPlaybackStarted(recording.id)
+        }
+        // Another recording started playing: pause this one
+        LaunchedEffect(playingRecordingId) {
+            if (playingRecordingId != recording.id && audioPlayerUiState.isPlaying) {
+                playerViewModel.onTogglePlayPause()
+            }
+        }
+
         val dismissState = rememberDismissState()
         if (dismissState.isDismissed(DismissDirection.EndToStart)) {
             LaunchedEffect(Unit) {
@@ -793,10 +807,10 @@ private fun RecordingItem(
                 PlatformAudioPlayerUi(
                     filePath = recording.filePath,
                     uiState = audioPlayerUiState,
-                    onLoadAudio = audioPlayerViewModel::onLoadAudio,
-                    onClear = audioPlayerViewModel::onClear,
-                    onSeekTo = audioPlayerViewModel::onSeekTo,
-                    onTogglePlayPause = audioPlayerViewModel::onTogglePlayPause
+                    onLoadAudio = playerViewModel::onLoadAudio,
+                    onClear = playerViewModel::onClear,
+                    onSeekTo = playerViewModel::onSeekTo,
+                    onTogglePlayPause = playerViewModel::onTogglePlayPause
                 )
             }
         )

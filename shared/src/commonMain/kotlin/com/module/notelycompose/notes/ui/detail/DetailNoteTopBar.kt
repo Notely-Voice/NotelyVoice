@@ -58,12 +58,9 @@ fun DetailNoteTopBar(
     onImportVideoClick: () -> Unit = {},
     onExportTextAsTxt: () -> Unit,
     onExportTextAsPDF: () -> Unit,
-    isRecordingExist: Boolean,
     areButtonsHidden: Boolean = false,
     onToggleButtons: () -> Unit = {}
 ) {
-    var showExistingRecordConfirmDialog by remember { mutableStateOf(false) }
-    var showExistingVideoRecordConfirmDialog by remember { mutableStateOf(false) }
     if (getPlatform().isAndroid) {
         DetailAndroidNoteTopBar(
             title = title,
@@ -71,20 +68,8 @@ fun DetailNoteTopBar(
             onShare = onShare,
             onCopy = onCopy,
             onExportAudio = onExportAudio,
-            onImportClick = {
-                if (!isRecordingExist) {
-                    onImportClick()
-                } else {
-                    showExistingRecordConfirmDialog = true
-                }
-            },
-            onImportVideoClick = {
-                if (!isRecordingExist) {
-                    onImportVideoClick()
-                } else {
-                    showExistingVideoRecordConfirmDialog = true
-                }
-            },
+            onImportClick = { onImportClick() },
+            onImportVideoClick = { onImportVideoClick() },
             onExportTextAsTxt = onExportTextAsTxt,
             onExportTextAsPDF = onExportTextAsPDF,
             areButtonsHidden = areButtonsHidden,
@@ -96,48 +81,14 @@ fun DetailNoteTopBar(
             onShare = onShare,
             onCopy = onCopy,
             onExportAudio = onExportAudio,
-            onImportClick = {
-                if (!isRecordingExist) {
-                    onImportClick()
-                } else {
-                    showExistingRecordConfirmDialog = true
-                }
-            },
-            onImportVideoClick = {
-                if (!isRecordingExist) {
-                    onImportVideoClick()
-                } else {
-                    showExistingVideoRecordConfirmDialog = true
-                }
-            },
+            onImportClick = { onImportClick() },
+            onImportVideoClick = { onImportVideoClick() },
             onExportTextAsTxt = onExportTextAsTxt,
             onExportTextAsPDF = onExportTextAsPDF,
             areButtonsHidden = areButtonsHidden,
             onToggleButtons = onToggleButtons
         )
     }
-
-    ReplaceRecordingConfirmationDialog(
-        showDialog = showExistingRecordConfirmDialog,
-        onDismiss = {
-            showExistingRecordConfirmDialog = false
-        },
-        onConfirm = {
-            onImportClick()
-        },
-        option = RecordingConfirmationUiModel.Import
-    )
-
-    ReplaceRecordingConfirmationDialog(
-        showDialog = showExistingVideoRecordConfirmDialog,
-        onDismiss = {
-            showExistingVideoRecordConfirmDialog = false
-        },
-        onConfirm = {
-            onImportVideoClick()
-        },
-        option = RecordingConfirmationUiModel.Import
-    )
 }
 
 @Composable

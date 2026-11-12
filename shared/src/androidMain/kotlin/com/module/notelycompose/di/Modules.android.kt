@@ -54,7 +54,8 @@ actual val platformModule = module {
         AndroidSqliteDriver(NoteDatabase.Schema, context = get(), "notes.db")
     }
 
-    single { PlatformAudioPlayer() }
+    // a new player per view model, so several recordings can each have their own
+    factory { PlatformAudioPlayer() }
 
     single { Downloader(get(), get()) }
 
