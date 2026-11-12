@@ -668,7 +668,7 @@ private fun FullscreenPhotoViewer(
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Delete photo",
-                        tint = Color.White
+                        tint = Color.Red
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
