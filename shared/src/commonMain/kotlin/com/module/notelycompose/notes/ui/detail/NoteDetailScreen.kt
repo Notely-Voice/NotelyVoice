@@ -484,6 +484,7 @@ private fun NoteContent(
                             recording = recording,
                             audioPlayerUiState = audioPlayerUiState,
                             audioPlayerViewModel = audioPlayerViewModel,
+                            isDeletePending = recordingToDelete?.id == recording.id,
                             onTranscribeRequest = { onTranscribeRecording(recording) },
                             onDeleteRequest = { recordingToDelete = recording }
                         )
@@ -667,11 +668,13 @@ private fun PhotosRow(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun RecordingItem(
     recording: RecordingUiModel,
     audioPlayerUiState: AudioPlayerUiState,
     audioPlayerViewModel: AudioPlayerViewModel,
+    isDeletePending: Boolean,
     onTranscribeRequest: () -> Unit,
     onDeleteRequest: () -> Unit
 ) {
@@ -679,26 +682,50 @@ private fun RecordingItem(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            PlatformAudioPlayerUi(
-                filePath = recording.filePath,
-                uiState = audioPlayerUiState,
-                onLoadAudio = audioPlayerViewModel::onLoadAudio,
-                onClear = audioPlayerViewModel::onClear,
-                onSeekTo = audioPlayerViewModel::onSeekTo,
-                onTogglePlayPause = audioPlayerViewModel::onTogglePlayPause
-            )
-            IconButton(
-                onClick = onDeleteRequest,
-                modifier = Modifier.align(Alignment.TopEnd)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete",
-                    tint = Color.Red
-                )
+        val dismissState = rememberDismissState()
+        if (dismissState.isDismissed(DismissDirection.EndToStart)) {
+            LaunchedEffect(Unit) {
+                onDeleteRequest()
             }
         }
+        // Snap the row back when the confirmation dialog is cancelled
+        LaunchedEffect(isDeletePending) {
+            if (!isDeletePending) {
+                dismissState.reset()
+            }
+        }
+
+        SwipeToDismiss(
+            state = dismissState,
+            directions = setOf(DismissDirection.EndToStart),
+            background = {
+                Box(
+                    modifier = Modifier
+                        .width(800.dp)
+                        .height(36.dp)
+                        .padding(horizontal = 16.dp, vertical = 0.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color.Red),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete",
+                        tint = Color.White
+                    )
+                }
+            },
+            dismissContent = {
+                PlatformAudioPlayerUi(
+                    filePath = recording.filePath,
+                    uiState = audioPlayerUiState,
+                    onLoadAudio = audioPlayerViewModel::onLoadAudio,
+                    onClear = audioPlayerViewModel::onClear,
+                    onSeekTo = audioPlayerViewModel::onSeekTo,
+                    onTogglePlayPause = audioPlayerViewModel::onTogglePlayPause
+                )
+            }
+        )
 
         IconButton(
             onClick = onTranscribeRequest,
