@@ -160,6 +160,7 @@ fun NoteDetailScreen(
     var showDownloadQuestionDialog by remember { mutableStateOf(false) }
     var showCopiedTooltip by remember { mutableStateOf(false) }
     var isFabVisible by remember { mutableStateOf(true) }
+    var userHiddenButtons by remember { mutableStateOf(false) }
 
     LaunchedEffect(importingPhotosState) {
         when (val state = importingPhotosState) {
@@ -233,14 +234,16 @@ fun NoteDetailScreen(
                 },
                 onExportTextAsPDF = {
                     platformViewModel.onExportTextAsPDF(editorState.content.text)
-                }
+                },
+                areButtonsHidden = userHiddenButtons,
+                onToggleButtons = { userHiddenButtons = !userHiddenButtons }
             )
         },
         floatingActionButton = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (hasAnyRecording) {
                     AnimatedVisibility(
-                        visible = isFabVisible,
+                        visible = !userHiddenButtons && isFabVisible,
                         enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
                         exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
                     ) {
@@ -268,7 +271,7 @@ fun NoteDetailScreen(
                 }
 
                 AnimatedVisibility(
-                    visible = isFabVisible,
+                    visible = !userHiddenButtons && isFabVisible,
                     enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
                     exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
                 ) {
@@ -294,7 +297,7 @@ fun NoteDetailScreen(
                 }
 
                 AnimatedVisibility(
-                    visible = isFabVisible,
+                    visible = !userHiddenButtons && isFabVisible,
                     enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
                     exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
                 ) {
