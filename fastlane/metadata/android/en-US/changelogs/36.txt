@@ -1,0 +1,8 @@
+- Daily export (Android): automatically save your notes to a folder you choose, one text file per note, at a time you set
+- Add multiple photos to a note, with a fullscreen gallery you can swipe through
+- Long-press a photo, or use the red delete button in the gallery, to remove it
+- Add several audio recordings to one note; importing audio no longer replaces existing ones
+- Each recording has its own player and duration
+- Swipe a recording to delete it
+- Hide or show the floating buttons from the note menu
+- Support for Android 17
