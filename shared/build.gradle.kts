@@ -174,8 +174,8 @@ android {
         applicationId = "com.module.notelycompose.android"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 34
-        versionName = "1.3.3"
+        versionCode = 36
+        versionName = "1.3.5"
     }
     buildFeatures {
         compose = true
