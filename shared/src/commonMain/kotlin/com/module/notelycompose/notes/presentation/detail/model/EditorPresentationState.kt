@@ -14,6 +14,9 @@ data class EditorPresentationState(
     val textAlign: TextAlign = TextAlign.Left,
     val selectionSize: TextFormatPresentationOption = TextPresentationFormats.NoSelection,
     val recording: RecordingPathPresentationModel = RecordingPathPresentationModel(),
+    val recordings: List<RecordingPresentationModel> = emptyList(),
+    val photos: List<PhotoPresentationModel> = emptyList(),
+    val transcriptionRecordingId: Long? = null,
     val starred: Boolean = false,
     val createdAt: String = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).formattedDate(),
     val bodyTextSize: Float = TEXT_SIZE_BODY

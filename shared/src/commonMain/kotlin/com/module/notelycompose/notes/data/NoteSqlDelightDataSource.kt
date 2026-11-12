@@ -5,6 +5,8 @@ import com.module.notelycompose.core.DateTimeUtil
 import com.module.notelycompose.core.toCommonFlow
 import com.module.notelycompose.database.NoteDatabase
 import com.module.notelycompose.notes.data.model.NoteDataModel
+import com.module.notelycompose.notes.data.model.PhotoDataModel
+import com.module.notelycompose.notes.data.model.RecordingDataModel
 import com.module.notelycompose.notes.data.model.TextAlignDataModel
 import com.module.notelycompose.notes.data.model.TextFormatDataModel
 import com.module.notelycompose.notes.domain.NoteDataSource
@@ -92,7 +94,7 @@ class NoteSqlDelightDataSource(
 
     override fun getVoiceNotes(): CommonFlow<List<NoteDataModel>> {
         return queries
-            .getNotesByRecordingPath()
+            .getNotesWithAnyRecording()
             .asFlow()
             .mapToList()
             .map { notes ->
@@ -117,7 +119,12 @@ class NoteSqlDelightDataSource(
     override fun getNoteById(id: Long): NoteDataModel? {
         return queries
             .getNoteById(id)
-            .executeAsOneOrNull()?.toNoteDataModel(json)
+            .executeAsOneOrNull()
+            ?.toNoteDataModel(
+                json,
+                recordings = getRecordingsByNoteId(id),
+                photos = getPhotosByNoteId(id)
+            )
     }
 
     override fun getLastNote(): NoteDataModel? {
@@ -133,8 +140,79 @@ class NoteSqlDelightDataSource(
     }
 
     override suspend fun deleteNoteById(id: Long) {
-        queries
-            .deleteNoteById(id)
+        queries.deleteRecordingsByNoteId(id)
+        queries.deletePhotosByNoteId(id)
+        queries.deleteNoteById(id)
+    }
+
+    override suspend fun insertRecording(
+        noteId: Long,
+        filePath: String,
+        transcription: String,
+        durationMs: Long,
+        position: Long
+    ): Long? {
+        queries.insertRecording(
+            noteId = noteId,
+            filePath = filePath,
+            transcription = transcription,
+            durationMs = durationMs,
+            position = position,
+            createdAt = DateTimeUtil.toEpochMilli(DateTimeUtil.now())
+        )
+        return queries.getLastRecordingId().executeAsOneOrNull()
+    }
+
+    override suspend fun updateRecordingTranscription(id: Long, transcription: String) {
+        queries.updateRecordingTranscription(transcription = transcription, id = id)
+    }
+
+    override suspend fun updateRecordingDuration(id: Long, durationMs: Long) {
+        queries.updateRecordingDuration(durationMs = durationMs, id = id)
+    }
+
+    override suspend fun deleteRecordingById(id: Long) {
+        queries.deleteRecordingById(id)
+    }
+
+    override suspend fun deleteRecordingsByNoteId(noteId: Long) {
+        queries.deleteRecordingsByNoteId(noteId)
+    }
+
+    override fun getRecordingsByNoteId(noteId: Long): List<RecordingDataModel> {
+        return queries
+            .getRecordingsByNoteId(noteId)
+            .executeAsList()
+            .map { it.toRecordingDataModel() }
+    }
+
+    override suspend fun insertPhoto(
+        noteId: Long,
+        filePath: String,
+        position: Long
+    ): Long? {
+        queries.insertPhoto(
+            noteId = noteId,
+            filePath = filePath,
+            position = position,
+            createdAt = DateTimeUtil.toEpochMilli(DateTimeUtil.now())
+        )
+        return queries.getLastPhotoId().executeAsOneOrNull()
+    }
+
+    override suspend fun deletePhotoById(id: Long) {
+        queries.deletePhotoById(id)
+    }
+
+    override suspend fun deletePhotosByNoteId(noteId: Long) {
+        queries.deletePhotosByNoteId(noteId)
+    }
+
+    override fun getPhotosByNoteId(noteId: Long): List<PhotoDataModel> {
+        return queries
+            .getPhotosByNoteId(noteId)
+            .executeAsList()
+            .map { it.toPhotoDataModel() }
     }
 }
 

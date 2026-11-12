@@ -24,6 +24,7 @@ composeVectorizeCore = "1.0.2"
 materialIconsCore = "1.7.3"
 navigation-compose = "2.9.0-beta03"
 documentfile = "1.1.0"
+coil3 = "3.2.0"
 
 # Kotlin & Multiplatform
 agp = "8.11.0"
@@ -59,6 +60,7 @@ androidx-compose-documentfile = { module = "androidx.documentfile:documentfile",
 compose-vectorize-core = { module = "dev.sergiobelda.compose.vectorize:compose-vectorize-core", version.ref = "composeVectorizeCore" }
 material-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version.ref = "materialIconsCore" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil3" }
 
 # DataStore
 datastore = { module = "androidx.datastore:datastore", version.ref = "datastore" }

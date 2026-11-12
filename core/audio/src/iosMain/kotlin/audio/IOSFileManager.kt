@@ -33,6 +33,10 @@ internal class IOSFileManager(
         }
     }
 
+    override fun launchPhotosPicker(onResult: () -> Unit) {
+        // TODO: iOS implementation (PHPickerViewController). Android-only feature for now.
+    }
+
     override suspend fun processPickedAudioToWav(onProgress: (Float) -> Unit): String? {
         val inputPath = copyToAppStorage() ?: return null
         val outputPath = audioConverter.convertAudioToWav(inputPath, onProgress)
@@ -45,6 +49,11 @@ internal class IOSFileManager(
         val outputPath = audioConverter.extractAudioFromVideoToWav(inputPath, onProgress)
         deleteFile(inputPath)
         return outputPath
+    }
+
+    override suspend fun processPickedPhotos(): List<String> {
+        // TODO: iOS implementation. Android-only feature for now.
+        return emptyList()
     }
 
     private fun copyToAppStorage(): String? {

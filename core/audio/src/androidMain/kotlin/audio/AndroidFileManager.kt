@@ -10,6 +10,7 @@ import audio.converter.AudioConverter
 import audio.utils.LauncherHolder
 import audio.utils.deleteFile
 import audio.utils.savePickedAudioToAppStorage
+import audio.utils.savePickedImageToAppStorage
 import audio.utils.savePickedVideoToAppStorage
 
 internal class AndroidFileManager(
@@ -20,6 +21,7 @@ internal class AndroidFileManager(
 
     private var pickedAudioUri: Uri? = null
     private var pickedVideoUri: Uri? = null
+    private var pickedPhotoUris: List<Uri> = emptyList()
 
     override fun launchAudioPicker(onResult: () -> Unit) {
         pickedAudioUri = null
@@ -43,6 +45,17 @@ internal class AndroidFileManager(
         }
     }
 
+    override fun launchPhotosPicker(onResult: () -> Unit) {
+        pickedPhotoUris = emptyList()
+        // Photo Picker (PickMultipleVisualMedia) does not require storage permissions
+        launcherHolder.photosPickerLauncher?.launch { uris ->
+            pickedPhotoUris = uris
+            if (uris.isNotEmpty()) {
+                onResult()
+            }
+        }
+    }
+
     override suspend fun processPickedAudioToWav(onProgress: (Float) -> Unit): String? {
         val inputPath = copyAudioToAppStorage() ?: return null
         val outputPath = audioConverter.convertAudioToWav(inputPath, onProgress)
@@ -55,6 +68,14 @@ internal class AndroidFileManager(
         val outputPath = audioConverter.extractAudioFromVideoToWav(inputPath, onProgress)
         deleteFile(inputPath)
         return outputPath
+    }
+
+    override suspend fun processPickedPhotos(): List<String> {
+        val paths = pickedPhotoUris.mapNotNull { uri ->
+            context.savePickedImageToAppStorage(uri)?.absolutePath
+        }
+        pickedPhotoUris = emptyList()
+        return paths
     }
 
     private fun copyAudioToAppStorage(): String? {

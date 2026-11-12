@@ -70,6 +70,9 @@ kotlin {
             implementation(libs.compose.vectorize.core)
             implementation(libs.kotlinx.serialization.json)
 
+            // image loading
+            implementation(libs.coil.compose)
+
             // koin
             implementation(libs.koin.core)
             implementation(libs.koin.test)
@@ -110,8 +113,8 @@ kotlin {
                 // For deterministic builds
                 freeCompilerArgs.add("-Xjsr305=strict")
                 freeCompilerArgs.add("-Xno-param-assertions")
-                freeCompilerArgs.add("-Xno-call-assertions")
                 freeCompilerArgs.add("-Xno-receiver-assertions")
+                freeCompilerArgs.add("-Xno-call-assertions")
                 freeCompilerArgs.add("-Xno-optimize")
                 freeCompilerArgs.add("-Xassertions=jvm")
                 freeCompilerArgs.add("-Xuse-deterministic-jar-order")
@@ -138,7 +141,7 @@ kotlin {
                 defFile(project.file("src/nativeInterop/cinterop/whisper.def"))
                 compilerOpts(
                     "-I${whisperFrameworkPath}/ios-arm64/whisper.framework/Headers",
-                    "-F$whisperFrameworkPath"
+                    "-F${whisperFrameworkPath}"
                 )
             }
         }
@@ -149,8 +152,8 @@ kotlin {
             cinterops.create("whisperX64") {
                 defFile(project.file("src/nativeInterop/cinterop/whisper.def"))
                 compilerOpts(
-                    "-I${whisperFrameworkPath}/ios-arm64_x86_64-simulator/whisper.framework/Headers",
-                    "-F$whisperFrameworkPath"
+                    "-I${whisperFrameworkPath}/ios-arm64/whisper.framework/Headers",
+                    "-F${whisperFrameworkPath}"
                 )
             }
         }

@@ -75,7 +75,8 @@ fun TranscriptionScreen(
     DisposableEffect(Unit) {
         viewModel.requestAudioPermission()
         viewModel.initRecognizer()
-        viewModel.startRecognizer(editorState.recording.recordingPath)
+        // Transcribe the recording selected in the editor, or the primary one by default
+        viewModel.startRecognizer(editorViewModel.getRecordingPathForTranscription())
         onDispose {
             viewModel.stopRecognizer()
             viewModel.finishRecognizer()
@@ -94,6 +95,7 @@ fun TranscriptionScreen(
                     BackButton(onNavigateBack = {
                         viewModel.stopRecognizer()
                         viewModel.finishRecognizer()
+                        editorViewModel.onSelectRecordingForTranscription(null)
                         navigateBack()
                         }
                     )
@@ -124,24 +126,6 @@ fun TranscriptionScreen(
                 } else if(transcriptionUiState.progress in 1..99){
                    SmoothLinearProgressBar((transcriptionUiState.progress / 100f))
                 }
-//                FloatingActionButton(
-//                    modifier = Modifier.padding(vertical = 8.dp),
-//                    shape = CircleShape,
-//                    onClick = {
-//                        if (!transcriptionUiState.isListening) {
-//                            onRecognitionStart()
-//                        } else {
-//                            onRecognitionStopped()
-//                        }
-//                    },
-//                    backgroundColor = if (transcriptionUiState.isListening) Color.Red else Color.Green
-//                ) {
-//                    Icon(
-//                        imageVector = Images.Icons.IcRecorder,
-//                        contentDescription = stringResource(Res.string.note_detail_recorder),
-//                        tint = LocalCustomColors.current.bodyContentColor
-//                    )
-//                }
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -171,7 +155,14 @@ fun TranscriptionScreen(
                         },
                         onClick = {
                             val result = if (transcriptionUiState.viewOriginalText) transcriptionUiState.originalText else transcriptionUiState.summarizedText
-                            editorViewModel.onUpdateContent(TextFieldValue("${editorState.content.text}\n$result"))
+                            val selectedRecordingId = editorViewModel.getSelectedRecordingIdForTranscription()
+                            if (selectedRecordingId != null) {
+                                // Bind the transcription to the recording it was made from
+                                editorViewModel.onUpdateRecordingTranscription(selectedRecordingId, result)
+                            } else {
+                                editorViewModel.onUpdateContent(TextFieldValue("${editorState.content.text}\n$result"))
+                            }
+                            editorViewModel.onSelectRecordingForTranscription(null)
                             navigateBack()
                         }
                     )
@@ -208,6 +199,7 @@ fun TranscriptionScreen(
         }
 
     HandlePlatformBackNavigation(enabled = true) {
+        editorViewModel.onSelectRecordingForTranscription(null)
         navigateBack()
     }
 
@@ -276,8 +268,3 @@ fun SmoothLinearProgressBar(progress: Float) {
         strokeCap = StrokeCap.Round
     )
 }
-
-
-
-
-
