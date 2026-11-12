@@ -6,6 +6,13 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -447,7 +454,7 @@ private fun NoteContent(
     val coroutineScope = rememberCoroutineScope()
     var recordingToDelete by remember { mutableStateOf<RecordingUiModel?>(null) }
     var photoToDelete by remember { mutableStateOf<PhotoUiModel?>(null) }
-    var fullscreenPhoto by remember { mutableStateOf<PhotoUiModel?>(null) }
+    var fullscreenPhotoIndex by remember { mutableStateOf<Int?>(null) }
     var showDeleteLegacyRecordingDialog by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
     LaunchedEffect(editorState.content) {
@@ -472,7 +479,7 @@ private fun NoteContent(
             if (editorState.photos.isNotEmpty()) {
                 PhotosRow(
                     photos = editorState.photos,
-                    onPhotoClick = { fullscreenPhoto = it },
+                    onPhotoClick = { fullscreenPhotoIndex = editorState.photos.indexOf(it).coerceAtLeast(0) },
                     onDeleteRequest = { photoToDelete = it }
                 )
             }
@@ -585,19 +592,29 @@ private fun NoteContent(
         )
     }
 
-    fullscreenPhoto?.let { photo ->
-        FullscreenPhotoViewer(
-            photo = photo,
-            onClose = { fullscreenPhoto = null }
-        )
+    fullscreenPhotoIndex?.let { index ->
+        if (editorState.photos.isEmpty()) {
+            fullscreenPhotoIndex = null
+        } else {
+            FullscreenPhotoViewer(
+                photos = editorState.photos,
+                initialIndex = index.coerceIn(0, editorState.photos.lastIndex),
+                onClose = { fullscreenPhotoIndex = null }
+            )
+        }
     }
 }
 
 @Composable
 private fun FullscreenPhotoViewer(
-    photo: PhotoUiModel,
+    photos: List<PhotoUiModel>,
+    initialIndex: Int,
     onClose: () -> Unit
 ) {
+    val pagerState = rememberPagerState(initialPage = initialIndex) { photos.size }
+    val scope = rememberCoroutineScope()
+    val scrim = Color.Black.copy(alpha = 0.55f)
+
     Dialog(
         onDismissRequest = onClose,
         properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -607,25 +624,82 @@ private fun FullscreenPhotoViewer(
                 .fillMaxSize()
                 .background(Color.Black)
         ) {
-            AsyncImage(
-                model = photo.filePath,
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clickable(onClick = onClose),
-                contentScale = ContentScale.Fit
-            )
-            IconButton(
-                onClick = onClose,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(16.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Close",
-                    tint = Color.White
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize()
+            ) { page ->
+                AsyncImage(
+                    model = photos[page].filePath,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
                 )
+            }
+
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "${pagerState.currentPage + 1} / ${photos.size}",
+                    color = Color.White,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(scrim)
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                IconButton(
+                    onClick = onClose,
+                    modifier = Modifier.clip(CircleShape).background(scrim)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close",
+                        tint = Color.White
+                    )
+                }
+            }
+
+            if (pagerState.currentPage > 0) {
+                IconButton(
+                    onClick = {
+                        scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(8.dp)
+                        .clip(CircleShape)
+                        .background(scrim)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowLeft,
+                        contentDescription = "Previous photo",
+                        tint = Color.White
+                    )
+                }
+            }
+            if (pagerState.currentPage < photos.lastIndex) {
+                IconButton(
+                    onClick = {
+                        scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(8.dp)
+                        .clip(CircleShape)
+                        .background(scrim)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowRight,
+                        contentDescription = "Next photo",
+                        tint = Color.White
+                    )
+                }
             }
         }
     }
